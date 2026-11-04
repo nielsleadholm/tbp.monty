@@ -60,6 +60,7 @@ from tbp.monty.frameworks.models.motor_policies import (
     JumpToGoal,
     PolicyStatus,
     SurfacePolicyCurvatureInformed,
+    derive_set_agent_pose_for_jump_from_goal,
 )
 from tbp.monty.frameworks.models.motor_system_state import (
     AgentState,
@@ -67,7 +68,7 @@ from tbp.monty.frameworks.models.motor_system_state import (
 )
 from tbp.monty.frameworks.models.sensor_modules import CameraSM
 from tbp.monty.frameworks.sensors import Resolution2D, SensorConfig, SensorID
-from tbp.monty.geometry import GazeDirection, Rotation, SurfacePoseVectors
+from tbp.monty.geometry import Rotation, SurfacePoseVectors
 from tbp.monty.hydra import instantiate_experiment
 from tbp.monty.math import EulerAnglesXYZ, VectorXYZ
 from tbp.monty.simulators.mujoco.agents import DistantAgent
@@ -1000,7 +1001,9 @@ class AdvancedPolicyTest(unittest.TestCase):
         )
 
         # Determine coordinates from goal.
-        set_agent_pose = policy._derive_set_agent_pose_from_goal(motor_goal)
+        set_agent_pose = derive_set_agent_pose_for_jump_from_goal(
+            motor_goal, policy._agent_id, policy._desired_object_distance
+        )
         target_loc = set_agent_pose.location
         target_quat = set_agent_pose.rotation_quat
 
@@ -1242,13 +1245,7 @@ class JumpToGoalTest(ParametrizedTestCase):
         policy = JumpToGoal(JUMP_AGENT_ID, JUMP_SENSOR_ID)
         goal = Mock(
             location=np.array(JUMP_OBJECT_POSITION),
-            morphological_features={
-                "pose_vectors": GazeDirection(
-                    np.array(
-                        [[1, 0, 0], [np.nan, np.nan, np.nan], [np.nan, np.nan, np.nan]]
-                    )
-                )
-            },
+            morphological_features={"pose_vectors": SurfacePoseVectors(np.eye(3))},
         )
         jump_result = policy(
             ctx=Mock(),
