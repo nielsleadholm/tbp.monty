@@ -405,8 +405,8 @@ class OrientationMatrix:
 
 
 @dataclass
-class GazeDirection:
-    """Matrix containing a gaze goal in the negative direction of surface normal."""
+class SurfaceNormal:
+    """Matrix containing a surface normal only."""
 
     value: npt.NDArray[np.float64]
     """
